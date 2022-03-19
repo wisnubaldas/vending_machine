@@ -6,29 +6,45 @@ use App\Models\Makanan;
 use App\Models\OrderItem;
 
 trait TransactionTrait {
+    private function cari_pecahan($kredit,$pass = [])
+    {
+        $kembalian = [];
+        foreach (Pecahan::all() as $key => $value) {
+            if($value->jml < 1)
+            {
+                unset($value);
+            }else{
+                $pk = $this->k1($kredit,$value->satuan);
+                $pk['pecahan'] = $value->satuan;
+                $pk['jml_uang_pecahan'] = $value->jml;
+                
+                if($pk['sisa'] != $kredit)
+                {
+                    array_push($kembalian,$pk);
+                }
+            }
+        }
+        $kembalian = collect($kembalian)->sortBy(['jml_pecahan','sisa'])->first();
+       return $pass[] = [$kembalian];
+    }
     private function k1($kr,$pc)
     {
-        $kmb = [];
         $quotient = (int)($kr / $pc);
         $remainder = $kr % $pc;
-        if($quotient == 1)
-        {
-            $kmb[] = array($quotient, $remainder);
-
-        }
-        return $kmb;
+        return array('jml_pecahan'=>$quotient, 'sisa'=>$remainder);
     }
     public function kembali($kredit)
     {
-        $kredit = 3000;
-        $kembali = Pecahan::all()->toArray();
-        foreach ($kembali as $key => $value) {
-            $banyakU = ($value[''] * $value->jml);
-            $pecahan = $value->satuan;
-            $pk = $this->k1($kredit,$pecahan);
-            dump($pk);
-            
+        // $kredit = 8000;
+        $kembalian = $this->cari_pecahan($kredit);
+        foreach ($kembalian as $key => $value) {
+            if($value['sisa'] != 0)
+            {
+                $sisa = $this->cari_pecahan($value['sisa'],$kembalian);
+                $kembalian[] = $sisa[0];
+            }
         }
+        return $kembalian;
     }
     public function item_makanan($makanan,$order_id)
     {
@@ -79,8 +95,5 @@ trait TransactionTrait {
     {
         return Makanan::where('harga','<=',(int)$uang)->get()->pluck('nama');
     }
-    public function cek_harga_rendah()
-    {
-        return Makanan::orderBy('harga','asc')->first();
-    }
+    
 }

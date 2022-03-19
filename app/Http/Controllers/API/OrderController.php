@@ -40,26 +40,22 @@ class OrderController extends Controller
     }
     public function pilih_makanan(Request $request)
     {
-        $harga_rendah = self::cek_harga_rendah();
         $sisa_kredit = self::item_makanan($request->makanan,$request->order_id);
-        return self::kembali($sisa_kredit);
-        if($sisa_kredit <= 0)
+        if($sisa_kredit < 0 || $sisa_kredit == 0)
         {
             return response()
                     ->json(['message' => 'Terimakasih telah belanja di Vending machine kami'],200);
-        }
-
-        if((int)$sisa_kredit < (int)$harga_rendah->harga)
-        {
-            return self::kembali($sisa_kredit);
         }else{
+            $x = [];
+            foreach (self::kembali($sisa_kredit) as $v) {
+                $x[] = 'uang pecahan '.$v['pecahan'].' sebanyak '.$v['jml_pecahan'].' lembar';
+            }
             return response()
                     ->json([
-                        'message' => 'uang anda masih cukup untuk membeli cemilan, belanja lagi?',
-                        'order_id' => $request->order_id,
-                        'sisa_kredit' => $sisa_kredit
+                        'message' => 'Terimakasih telah belanja di Vending machine kami',
+                        'kembalian'=>$x
                     ],200);
+            
         }
-
     }
 }
