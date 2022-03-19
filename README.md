@@ -11,8 +11,8 @@
 ### Endpoint API
 - login aplikasi
 
-path ```localhost:8000/api/login``` 
-contoh client jquery:
+    path ```localhost:8000/api/login``` 
+    contoh client jquery:
     ```javascript 
         var form = new FormData();
         form.append("email", "admin@admin.com");
